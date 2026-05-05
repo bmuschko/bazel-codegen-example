@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mount Bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel
+          key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel') }}
+          restore-keys: bazel-${{ runner.os }}-
+
+      - name: Setup Bazelisk
+        uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+
+      - name: Build generated code
+        run: bazelisk build //logger/schema:gen_logger_pb
+
+      - name: Verify source tree is up-to-date
+        run: bazelisk test //logger/schema:write_logger_pb_test
+
+      - name: Demonstrate updating source tree
+        run: bazelisk run //logger/schema:write_logger_pb
