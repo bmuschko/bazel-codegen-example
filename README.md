@@ -28,13 +28,13 @@ logger/schema/
 Build the generated file:
 
 ```sh
-bazel build //logger/schema:gen_logger_pb
+bazelisk build //logger/schema:gen_logger_pb
 ```
 
 Verify the source tree copy is up-to-date:
 
 ```sh
-bazel test //logger/schema:write_logger_pb_test
+bazelisk test //logger/schema:write_logger_pb_test
 ```
 
 Make the source tree copy stale by adding a field to `schema.txt`:
@@ -46,7 +46,7 @@ echo "traceId:string" >> logger/schema/schema.txt
 Run the test again. It fails because `logger.pb.go` no longer matches the generated output:
 
 ```sh
-bazel test //logger/schema:write_logger_pb_test --test_output=errors
+bazelisk test //logger/schema:write_logger_pb_test --test_output=errors
 ```
 
 ```
@@ -63,13 +63,13 @@ FAIL: files "logger/schema/_logger.pb.go" and "logger/schema/logger.pb.go" diffe
 Update the source tree copy:
 
 ```sh
-bazel run //logger/schema:write_logger_pb
+bazelisk run //logger/schema:write_logger_pb
 ```
 
 Run the test again to confirm it passes:
 
 ```sh
-bazel test //logger/schema:write_logger_pb_test
+bazelisk test //logger/schema:write_logger_pb_test
 ```
 
 ## Requirements
