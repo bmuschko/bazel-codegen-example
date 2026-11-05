@@ -37,10 +37,39 @@ Verify the source tree copy is up-to-date:
 bazel test //logger/schema:write_logger_pb_test
 ```
 
-Update the source tree copy after changing `schema.txt`:
+Make the source tree copy stale by adding a field to `schema.txt`:
+
+```sh
+echo "traceId:string" >> logger/schema/schema.txt
+```
+
+Run the test again. It fails because `logger.pb.go` no longer matches the generated output:
+
+```sh
+bazel test //logger/schema:write_logger_pb_test --test_output=errors
+```
+
+```
+==================== Test output for //logger/schema:write_logger_pb_test:
+9d8
+< 	TraceId string
+FAIL: files "logger/schema/_logger.pb.go" and "logger/schema/logger.pb.go" differ.
+
+@@//logger/schema:logger.pb.go is out of date. To update this file, run:
+
+    bazel run //logger/schema:write_logger_pb
+```
+
+Update the source tree copy:
 
 ```sh
 bazel run //logger/schema:write_logger_pb
+```
+
+Run the test again to confirm it passes:
+
+```sh
+bazel test //logger/schema:write_logger_pb_test
 ```
 
 ## Requirements

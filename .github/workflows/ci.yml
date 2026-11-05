@@ -31,5 +31,31 @@ jobs:
       - name: Verify source tree is up-to-date
         run: bazelisk test //logger/schema:write_logger_pb_test
 
-      - name: Demonstrate updating source tree
-        run: bazelisk run //logger/schema:write_logger_pb
+      - name: Make source tree stale by changing the schema
+        run: echo "traceId:string" >> logger/schema/schema.txt
+
+      - name: Verify test fails for stale source tree
+        run: |
+          set +e
+          bazelisk test //logger/schema:write_logger_pb_test --test_output=errors 2>&1 | tee test.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 3 ]; then
+            echo "::error::Expected exit code 3 (test failed), got $status"
+            exit 1
+          fi
+          if ! grep -q "logger.pb.go is out of date" test.log; then
+            echo "::error::Expected out-of-date message in test output"
+            exit 1
+          fi
+
+      - name: Update source tree
+        run: |
+          bazelisk run //logger/schema:write_logger_pb
+          if ! grep -q "TraceId string" logger/schema/logger.pb.go; then
+            echo "::error::Expected logger.pb.go to contain the new TraceId field"
+            exit 1
+          fi
+
+      - name: Verify test passes after update
+        run: bazelisk test //logger/schema:write_logger_pb_test
